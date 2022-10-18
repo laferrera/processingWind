@@ -61,7 +61,7 @@ class ControlFrame extends PApplet {
     cp5.addSlider("strokeMod")
        .setValue(strokeMod)
        .plugTo(parent, "strokeMod")
-       .setRange(0.01, 1.0)
+       .setRange(0.01, 2.0)
        .setPosition(20, heightOffset())
        .setSize(cp5width, 10)
        ;

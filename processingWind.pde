@@ -5,8 +5,8 @@ import controlP5.*;
 ControlFrame cf;
 boolean beginExportSVG = false;
 
-int n=9400;
-PVector[] ps = new PVector[n];
+int numOfVectors=9400;
+PVector[] ps = new PVector[numOfVectors];
 PGraphics pg;
 float f0Mod= 0.004; // 0.002
 float f1Mod= 0.02; // 0.02
@@ -30,9 +30,11 @@ PShader saturation;
 void setup() {
   //size(640, 640,P3D);   
   size(540, 960,P3D);   
-  for (int i=0; i<n; i++) 
-    ps[i]= new PVector(random(width), random(height));  
+  for (int i=0; i<numOfVectors; i++){ 
+    ps[i] = randomVector(i);
+    //ps[i]= new PVector(random(width), random(height));  
     //ps[i]= new PVector(random(width), random(height), random(-10,10));
+  }
   pg = createGraphics(width, height);
   background(0);
   //colorMode(RGB);
@@ -48,11 +50,21 @@ void setup() {
   saturation = loadShader("mySaturation.glsl");
 }
 
-
+PVector randomVector(int i){
+  //float x = width * noise(i);
+  //float y = height * noise(i+numOfVectors);
+  //PVector p = new PVector(x,y);
+  PVector p = new PVector(random(width), random(height));
+  return p;
+}
 
 
 void keyPressed(KeyEvent ke){
   myKeyPressed(ke);
+}
+
+void mousePressed(){
+   myMousePressed();
 }
 
 public void exportSVG(){
@@ -90,7 +102,7 @@ void renderWind(){
   pg.noStroke();
   pg.rect(0, 0, width, height);
   pg.stroke(255);
-  for (int i=0; i<n; i++) {
+  for (int i=0; i<numOfVectors; i++) {
     PVector p = ps[i];
     float ang=(noise( angMod*p.x + f0, angMod*p.y ))*4*PI;
     PVector v = new PVector(0.7*cos(ang)+ 0.4*cos(f1), sin(ang));
@@ -99,13 +111,14 @@ void renderWind(){
     v = v.mult(vMult);
     p.add(v);
     if ( random(1.0)<0.01 ||p.x<0 || p.x>width || p.y<0 || p.y>height){
-      ps[i]= new PVector(random(width), random(height));
+      ps[i] = randomVector(i);
+      //ps[i]= new PVector(random(width), random(height));
     }
      
-    pg.strokeWeight(0.5 + strokeMod/(0.004+magSq));
+    pg.strokeWeight(strokeMod + strokeMod/(0.004+magSq));
     //pg.strokeWeight(1 + 0.25/(0.004+magSq));
     
-    float hue = (255 * (float(i)/n + noise(f2)))%255;  
+    float hue = (255 * (float(i)/numOfVectors + noise(f2)))%255;  
     float bright = 195 + 64 * 0.5/(0.004+magSq); // light stroke
     //float bright = 72 - 64 * 0.5/(0.004+magSq); // dark stroke 
     pg.stroke(hue, 64, bright);
@@ -141,9 +154,6 @@ void draw() {
     vMultLerpAmount += 0.01;
   }
 
-  noiseOctaves = int(map(mouseX, 0, width,1,12));
-  noiseFallOff = map(mouseY, 0, height,0,0.5);
-  //noiseDetail(noiseOctaves,noiseFallOff);
   renderWind();
   image(pg, 0, 0,width,height);
   
@@ -161,7 +171,7 @@ void draw() {
   
   
   starglowstreak.set("time", (float) millis()/1000.0);
-  filter(starglowstreak);
+  //filter(starglowstreak);
   
 //  radialStreak.set("time", (float) millis()/1000.0);
 //  //filter(radialStreak);

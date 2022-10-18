@@ -80,9 +80,11 @@ void main() {
     
     // screen it over the original
     vec4 layer=vec4(c_step_2,1.0);
-    vec4 blendResult=vec4(screen(c.rgb,layer.rgb),1.);
+    vec4 screenResult=vec4(screen(c.rgb,layer.rgb),1.);
+    // gl_FragColor = screenResult;
     float alpha=.5;
-    // gl_FragColor=opacity(alpha,vec4(c,1.0),layer);
-    gl_FragColor = blendResult;
+    gl_FragColor=opacity(alpha,vec4(c,1.0),layer);
+
+
 
 }
