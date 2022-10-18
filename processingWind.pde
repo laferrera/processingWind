@@ -86,7 +86,7 @@ void renderWind(){
   pg.beginDraw();
   pg.colorMode(HSB);
   pg.fill(0,0,0,(10*2.0/vMult));
-  //pg.fill(0,0,255,10); // white fill
+  //pg.fill(0,0,255,(10*2.0/vMult)); // white fill
   pg.noStroke();
   pg.rect(0, 0, width, height);
   pg.stroke(255);
@@ -106,8 +106,8 @@ void renderWind(){
     //pg.strokeWeight(1 + 0.25/(0.004+magSq));
     
     float hue = (255 * (float(i)/n + noise(f2)))%255;  
-    float bright = 195 + 64 * 0.5/(0.004+magSq);
-    //float bright = 72 - 64 * 0.5/(0.004+magSq); // dark bright 
+    float bright = 195 + 64 * 0.5/(0.004+magSq); // light stroke
+    //float bright = 72 - 64 * 0.5/(0.004+magSq); // dark stroke 
     pg.stroke(hue, 64, bright);
     //pg.point(p.x, p.y,(noise( angMod*p.z + f0) + p.z));
     pg.point(p.x, p.y);
@@ -121,7 +121,7 @@ void changeFmods(){
   //f1Mod= 0.02; 
   f0Mod = map(noise(frameCount+f0Mod),0,1,.001,0.01);
   f1Mod = map(noise(frameCount+f1Mod),0,1,.001,0.01);
-  //swellVmult();
+  swellVmult();
 }
 
 void swellVmult(){
@@ -134,7 +134,7 @@ void swellVmult(){
 void draw() {
 
   
-  if(vMultLerpAmount > 0){
+  if(vMultLerpAmount < 1.0){
     vMult = lerp(vMult,vMultLast , vMultLerpAmount);
     println("vmMult: ", vMult);
     println("vmMultLast: ", vMultLast);
@@ -168,11 +168,11 @@ void draw() {
   
   filter(channels);
   
-   gaussian.set("time", (float) millis()/1000.0);
-   filter(gaussian);
+  gaussian.set("time", (float) millis()/1000.0);
+  filter(gaussian);
    
-   myBlur2.set("time", (float) millis()/1000.0);
-   filter(myBlur2);
+  myBlur2.set("time", (float) millis()/1000.0);
+  filter(myBlur2);
    
    //filter(saturation);
 }
