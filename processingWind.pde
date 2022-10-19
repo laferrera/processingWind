@@ -1,12 +1,22 @@
 import java.util.*;
 import processing.svg.*;
 import controlP5.*;
+import processing.video.*;
+import com.hamoid.*;
+
+VideoExport videoExport;
+Movie video;
 
 ControlFrame cf;
 boolean beginExportSVG = false;
+boolean exportingVideo = false;
 
 int numOfVectors=9400;
+int zDepth = 10;
 PVector[] ps = new PVector[numOfVectors];
+PVector[] psBuff1 = new PVector[numOfVectors];
+PVector[] psBuff2 = new PVector[numOfVectors];
+PVector[] psBuff3 = new PVector[numOfVectors];
 PGraphics pg;
 float f0Mod= 0.004; // 0.002
 float f1Mod= 0.02; // 0.02
@@ -18,6 +28,7 @@ float angMod = 0.005; //0.003
 float strokeMod = 0.5;
 int noiseOctaves;
 float noiseFallOff;
+int hsbSat = 48;
 
 PShader starglowstreak;
 PShader radialStreak;
@@ -32,12 +43,14 @@ void setup() {
   size(540, 960,P3D);   
   for (int i=0; i<numOfVectors; i++){ 
     ps[i] = randomVector(i);
+    psBuff1[i] = ps[i].copy();
+    psBuff2[i] = ps[i].copy();
+    psBuff3[i] = ps[i].copy();
     //ps[i]= new PVector(random(width), random(height));  
     //ps[i]= new PVector(random(width), random(height), random(-10,10));
   }
-  pg = createGraphics(width, height);
+  pg = createGraphics(width, height, P3D);
   background(0);
-  //colorMode(RGB);
   colorMode(HSB);
   cf = new ControlFrame(this, 300, 500, "Controls");
   
@@ -54,6 +67,7 @@ PVector randomVector(int i){
   //float x = width * noise(i);
   //float y = height * noise(i+numOfVectors);
   //PVector p = new PVector(x,y);
+  //PVector p = new PVector(random(width), random(height), random(zDepth));
   PVector p = new PVector(random(width), random(height));
   return p;
 }
@@ -90,6 +104,17 @@ String timestamp() {
   return String.format("%1$ty%1$tm%1$td_%1$tH%1$tM%1$tS", now);
 }
 
+void videoExport(){
+  if(exportingVideo){
+    exportingVideo = false;
+    videoExport.endMovie();
+  } else{
+    videoExport = new VideoExport(this, "data/exports/video_export_"+timestamp()+".mp4");
+    videoExport.setFrameRate(60);  
+    videoExport.startMovie();
+    exportingVideo = true;
+  }
+}
 
 void renderWind(){
   float f0 = f0Mod*frameCount; // 0.002
@@ -97,9 +122,10 @@ void renderWind(){
   float f2 = f2Mod*frameCount; // 0.008
   pg.beginDraw();
   pg.colorMode(HSB);
+  pg.noStroke();
   pg.fill(0,0,0,(10*2.0/vMult));
   //pg.fill(0,0,255,(10*2.0/vMult)); // white fill
-  pg.noStroke();
+
   pg.rect(0, 0, width, height);
   pg.stroke(255);
   for (int i=0; i<numOfVectors; i++) {
@@ -108,26 +134,26 @@ void renderWind(){
     PVector v = new PVector(0.7*cos(ang)+ 0.4*cos(f1), sin(ang));
     //magnitude (length) of the vector, square    
     float magSq= v.magSq();
-    v = v.mult(vMult);
+    v.setMag(vMult);
     p.add(v);
-    if ( random(1.0)<0.01 ||p.x<0 || p.x>width || p.y<0 || p.y>height){
+    if ( random(1.0)<0.01 || 
+         p.x<0 || p.x>width || 
+         p.y<0 || p.y>height){
       ps[i] = randomVector(i);
-      //ps[i]= new PVector(random(width), random(height));
     }
      
-    pg.strokeWeight(strokeMod + strokeMod/(0.004+magSq));
-    //pg.strokeWeight(1 + 0.25/(0.004+magSq));
-    
+    pg.strokeWeight(strokeMod + strokeMod/(0.004 + magSq));
+    //pg.strokeWeight(strokeMod);
     float hue = (255 * (float(i)/numOfVectors + noise(f2)))%255;  
     float bright = 195 + 64 * 0.5/(0.004+magSq); // light stroke
     //float bright = 72 - 64 * 0.5/(0.004+magSq); // dark stroke 
-    pg.stroke(hue, 64, bright);
-    //pg.point(p.x, p.y,(noise( angMod*p.z + f0) + p.z));
+    pg.stroke(hue, hsbSat, bright);
     pg.point(p.x, p.y);
-  }  
+  }
   pg.endDraw();
-  
+ 
 }
+
 
 void changeFmods(){
   //f0Mod= 0.004; 
@@ -138,20 +164,22 @@ void changeFmods(){
 }
 
 void swellVmult(){
-  vMultLerpAmount = 0.01;
+  vMultLerpAmount = 0.1;
   vMultLast = vMult;
   vMult = .5;
 }
 
+void printInfo(){
+  println("ps[5]", ps[5]);
+  println("psBuff3[5]", psBuff3[5]);
+}
 
-void draw() {
-
-  
+void draw() {  
   if(vMultLerpAmount < 1.0){
     vMult = lerp(vMult,vMultLast , vMultLerpAmount);
     println("vmMult: ", vMult);
     println("vmMultLast: ", vMultLast);
-    vMultLerpAmount += 0.01;
+    vMultLerpAmount += 0.05;
   }
 
   renderWind();
@@ -171,10 +199,10 @@ void draw() {
   
   
   starglowstreak.set("time", (float) millis()/1000.0);
-  //filter(starglowstreak);
+  filter(starglowstreak);
   
-//  radialStreak.set("time", (float) millis()/1000.0);
-//  //filter(radialStreak);
+  //radialStreak.set("time", (float) millis()/1000.0);
+  //filter(radialStreak);
   
   filter(channels);
   
@@ -185,4 +213,5 @@ void draw() {
   filter(myBlur2);
    
    //filter(saturation);
+  if(exportingVideo){videoExport.saveFrame();}
 }

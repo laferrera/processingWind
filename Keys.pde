@@ -6,6 +6,8 @@ void myKeyPressed(KeyEvent ke)
   if (key == ' ') noiseSeed(now.getTimeInMillis());
   if (key == 'e') exportSVG();
   if (key == 'r') changeFmods();
+  if (key == 'p') printInfo();
+  if (key == 'v') videoExport();
    
 }
 

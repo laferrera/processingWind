@@ -65,6 +65,13 @@ class ControlFrame extends PApplet {
        .setPosition(20, heightOffset())
        .setSize(cp5width, 10)
        ;
+    cp5.addSlider("hsbSat")
+       .setValue(hsbSat)
+       .plugTo(parent, "hsbSat")
+       .setRange(0, 255)
+       .setPosition(20, heightOffset())
+       .setSize(cp5width, 10)
+       ;
 
     // cp5.addToggle("lfoAnimate")
     //   .setValue(lfoAnimate)    
